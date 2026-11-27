@@ -149,6 +149,12 @@
             style="background:#D9E8F8"></button>
     <button class="swatch" type="button" data-color="#E6E6E6" title="浅灰"
             style="background:#E6E6E6"></button>
+    <button class="swatch" type="button" data-color="#E8E1F8" title="浅紫"
+            style="background:#E8E1F8"></button>
+    <button class="swatch" type="button" data-color="#DDF0CF" title="浅绿"
+            style="background:#DDF0CF"></button>
+    <button class="swatch" type="button" data-color="#FFF1BF" title="浅黄"
+            style="background:#FFF1BF"></button>
     <label class="swatch custom" title="自定义颜色">
       <input type="color" id="color-custom" value="#D9E8F8">
     </label>
@@ -175,7 +181,7 @@
         <li><b>第 <span data-desc="numRow"></span> 行第 1 格</b>为第 <span data-desc="numRow"></span> 行数字之和</li>
         <li>第一列深灰格文字可直接编辑</li>
         <li>灰色文字（第一行 <b>名称1～名称8</b>、第八行 <b>--</b>）是占位提示：点击进入编辑即消失，可直接输入；清空并离开编辑后自动恢复，不会写入数据</li>
-        <li><b>底色编辑</b>：可选浅蓝、浅灰或自定义颜色，<b>点格子涂色，再点一次取消</b>；选「清空」后点击同样恢复默认底色。确认后随当前方案保存；第 7 行与第 <span data-desc="countRow"></span> 行不参与，重置按钮不会清除已设底色</li>
+        <li><b>底色编辑</b>：可选浅蓝、浅灰、浅紫、浅绿、浅黄或自定义颜色，<b>点格子涂色，再点一次取消</b>；选「清空」后点击同样恢复默认底色。确认后随当前方案保存；第 7 行与第 <span data-desc="countRow"></span> 行不参与，重置按钮不会清除已设底色</li>
         <li><b>数据自动保存在本浏览器</b>：刷新/重开/页面更新都不丢，每人各自一份，不写回任何文件</li>
         <li>多方案之间数据相互独立，可随时切换、新增、改名、删除</li>
       </ul>
@@ -505,15 +511,21 @@
       td.style.backgroundColor = bg || '';
     });
   }
+  function presetColors(){
+    return Array.prototype.map.call(colorBar.querySelectorAll('.swatch[data-color]'), function(sw){
+      return String(sw.dataset.color).toUpperCase();
+    });
+  }
   function refreshSwatches(){
+    var presets = presetColors();
     colorBar.querySelectorAll('.swatch[data-color]').forEach(function(sw){
-      sw.classList.toggle('selected', colorEdit.brush === sw.dataset.color);
+      sw.classList.toggle('selected', colorEdit.brush === String(sw.dataset.color).toUpperCase());
     });
     var eraser = document.getElementById('color-eraser');
     if(eraser) eraser.classList.toggle('selected', colorEdit.brush === '');
     var customSw = colorBar.querySelector('.swatch.custom');
-    var isDefault = colorEdit.brush === '' || colorEdit.brush === '#D9E8F8' || colorEdit.brush === '#E6E6E6';
-    if(customSw) customSw.classList.toggle('selected', !isDefault);
+    var isPreset = colorEdit.brush !== '' && presets.indexOf(colorEdit.brush) !== -1;
+    if(customSw) customSw.classList.toggle('selected', colorEdit.brush !== '' && !isPreset);
   }
   function setBrush(color){
     colorEdit.brush = color ? String(color).toUpperCase() : '';
@@ -521,7 +533,7 @@
       colorCustom.value = colorEdit.brush;
       var customSw = colorBar.querySelector('.swatch.custom');
       if(customSw){
-        if(colorEdit.brush === '#D9E8F8' || colorEdit.brush === '#E6E6E6') customSw.style.background = '';
+        if(presetColors().indexOf(colorEdit.brush) !== -1) customSw.style.background = '';
         else customSw.style.background = colorEdit.brush;
       }
     }
