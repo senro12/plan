@@ -4,9 +4,1010 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>方案</title>
-<meta http-equiv="refresh" content="0; url=./plan.html">
+<style>
+  *{box-sizing:border-box}
+  body{margin:0;padding:28px 20px 50px;background:#f3f5f8;color:#1f2937;
+       font-family:"PingFang SC","Microsoft YaHei","DengXian","等线",-apple-system,"Segoe UI",sans-serif;
+       -webkit-font-smoothing:antialiased;}
+  .page{max-width:1200px;margin:0 auto;}
+  .title-row{display:flex;align-items:center;gap:14px;flex-wrap:wrap;margin-bottom:14px;}
+  h1{margin:0;font-size:22px;display:flex;align-items:center;gap:10px;}
+  h1::before{content:"";width:6px;height:22px;border-radius:3px;background:linear-gradient(#203864,#595959);}
+  .scheme-bar{display:flex;align-items:center;gap:8px;flex-wrap:wrap;}
+  .scheme-name{flex:1;display:flex;align-items:center;padding:6px 10px;font-size:13px;
+               font-weight:600;color:#334155;min-width:0;white-space:nowrap;overflow:hidden;
+               text-overflow:ellipsis;cursor:text;}
+  .scheme-name:hover{background:rgba(59,130,246,.08);}
+  .scheme-name:focus{background:#fff;box-shadow:inset 0 0 0 2px #3b82f6;}
+  .btn{background:#fff;border:1px solid #cbd5e1;border-radius:6px;padding:6px 12px;
+       cursor:pointer;font:13px "PingFang SC","Microsoft YaHei",sans-serif;color:#374151;
+       transition:background .12s;}
+  .btn:hover{background:#f1f5f9;}
+  .btn.danger{color:#b91c1c;border-color:#fca5a5;}
+  .btn.danger:hover{background:#fef2f2;}
+  .scheme-combo{display:inline-flex;align-items:stretch;width:220px;background:#fff;
+                border:1px solid #cbd5e1;border-radius:6px;overflow:hidden;}
+  .scheme-toggle{width:28px;border:none;border-left:1px solid #e5e9ef;background:transparent;
+                 cursor:pointer;color:#6b7280;font-size:11px;padding:0;}
+  .scheme-toggle:hover{background:#f1f5f9;}
+  .scheme-popup{position:fixed;display:none;background:#fff;border:1px solid #cbd5e1;
+                border-radius:8px;box-shadow:0 10px 28px rgba(15,23,42,.18);z-index:60;
+                min-width:220px;max-height:240px;overflow:auto;padding:4px 0;}
+  .scheme-popup.open{display:block;}
+  .scheme-option{padding:8px 12px;font-size:13px;color:#111827;cursor:pointer;white-space:nowrap;}
+  .scheme-option:hover{background:#f1f5f9;}
+  .scheme-option.active{background:#eef2ff;color:#1d4ed8;font-weight:600;}
+  .ops{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:10px;}
+  .btn.primary{background:#203864;border-color:#203864;color:#fff;}
+  .btn.primary:hover{background:#2b4a7c;}
+  .btn.edit-armed{background:#fff;border-color:#203864;color:#203864;}
+  .btn.edit-armed:hover{background:#f1f5f9;}
+  .hint{font-size:12px;color:#9ca3af;}
+  .btn[data-confirming='1']{color:#b91c1c !important;border-color:#fca5a5 !important;background:#fef2f2 !important;}
+  .color-bar{display:none;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:10px;
+             padding:8px 10px;background:#fff;border:1px solid #e2e8f0;border-radius:8px;}
+  .color-bar.open{display:flex;}
+  .swatch{width:22px;height:22px;border-radius:5px;border:1px solid #cbd5e1;cursor:pointer;
+          padding:0;position:relative;flex:none;}
+  .swatch.selected{outline:2px solid #3b82f6;outline-offset:2px;}
+  .swatch.clear{background:#fff;overflow:hidden;}
+  .swatch.clear::after{content:"";position:absolute;left:-4px;right:-4px;top:50%;height:2px;
+                       background:#ef4444;transform:rotate(-45deg);}
+  .swatch.custom{background:conic-gradient(#f87171,#fbbf24,#34d399,#60a5fa,#a78bfa,#f87171);}
+  .swatch.custom input{position:absolute;inset:0;width:100%;height:100%;opacity:0;
+                       cursor:pointer;border:none;padding:0;}
+  .swatch-label{font-size:12px;color:#4b5563;}
+  #color-confirm{margin-left:auto;}
+  .main-table.color-editing td.paint-cell{cursor:crosshair;
+          outline:1px dashed rgba(59,130,246,.45);outline-offset:-3px;}
+  .main-table.color-editing td.paint-cell .v,
+  .main-table.color-editing td.paint-cell .cell-text{pointer-events:none;}
+  table{width:100%;table-layout:fixed;border-collapse:collapse;font-size:14px;background:#fff;}
+  th,td{border-right:1px solid #c5cdd6;border-bottom:1px solid #c5cdd6;
+        text-align:center;height:44px;padding:0;position:relative;}
+  th:last-child,td:last-child{border-right:2px solid #94a3b8;}
+  th:first-child,td:first-child{border-left:2px solid #94a3b8;}
+  thead th{border-top:2px solid #94a3b8;}
+  tr:last-child td{border-bottom:2px solid #94a3b8;}
+  tr.row-hd th{background:#203864;color:#fff;font-weight:600;}
+  tr.row-white td{background:#fff;}
+  tr.row-src td{background:#203864;color:#fff;font-weight:600;}
+  tr td.dg{background:#595959;color:#fff;font-weight:600;}
+  th.black,td.black{background:#000 !important;}
+  th.center,td.center{text-align:center;vertical-align:middle;}
+  .v{border-radius:0;outline:none;cursor:text;transition:background .12s,box-shadow .12s;}
+  .v.computed{cursor:default;font-weight:600;color:#111827;}
+  .v.num{font-weight:600;}
+  th .v, td .v{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;
+               padding:3px 8px;}
+  td.dg .v, tr.row-hd .v, tr.row-src .v{color:#fff;}
+  td.dg .v[contenteditable]:hover{background:rgba(59,130,246,.12) !important;box-shadow:0 0 0 1px #93c5fd inset;}
+  td.dg .v[contenteditable]:focus{background:rgba(59,130,246,.22) !important;box-shadow:0 0 0 2px #3b82f6;}
+  tr.row-hd .v[contenteditable]:hover{background:rgba(255,255,255,.18);box-shadow:0 0 0 1px rgba(255,255,255,.6) inset;}
+  tr.row-hd .v[contenteditable]:focus{background:rgba(255,255,255,.22);box-shadow:0 0 0 2px #fff;}
+  tr.row-src .v[contenteditable]:hover{background:rgba(255,255,255,.18);box-shadow:0 0 0 1px rgba(255,255,255,.6) inset;}
+  tr.row-src .v[contenteditable]:focus{background:rgba(255,255,255,.22);box-shadow:0 0 0 2px #fff;}
+  tr.row-white .v[contenteditable]:hover{background:rgba(59,130,246,.10);box-shadow:0 0 0 1px #93c5fd inset;}
+  tr.row-white .v[contenteditable]:focus{background:#fff;box-shadow:0 0 0 2px #3b82f6;}
+  td.data-cell{position:relative;padding:0;}
+  td.popup-open{background:#eef2ff !important;box-shadow:inset 0 0 0 2px #3b82f6;}
+  td.popup-open .cell-text{color:#1d4ed8;}
+  .cell-text{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;
+             padding:3px 8px;font-weight:600;color:#111827;font-variant-numeric:tabular-nums;}
+  select.cell-select{display:none;}   /* 原生下拉彻底隐藏，只保留白色自定义弹窗 */
+  td.e6 .v[contenteditable]:focus{background:transparent;box-shadow:inset 0 0 0 2px #3b82f6;}
+  tr td.e6{background:#E6E6E6;}
+  tr td.e6 .v{font-weight:600;}
+  .cell-popup{position:fixed;display:none;background:#fff;border:1px solid #cbd5e1;
+              border-radius:8px;box-shadow:0 10px 28px rgba(15,23,42,.18);z-index:60;
+              max-height:240px;overflow:auto;padding:4px 0;}
+  .cell-popup.open{display:block;}
+  .popup-item{padding:8px 14px;font-size:14px;color:#111827;cursor:pointer;white-space:nowrap;}
+  .popup-item:hover{background:#f1f5f9;}
+  .popup-item.active{background:#eef2ff;color:#1d4ed8;}
+  .note-mod{margin-top:20px;}
+  .mod-title{font-weight:600;font-size:14px;color:#1f2937;margin-bottom:8px;}
+  #note{width:100%;height:64px;min-height:64px;border:1px solid #cbd5e1;border-radius:8px;
+        padding:10px 12px;font:14px "PingFang SC","Microsoft YaHei",sans-serif;
+        color:#1f2937;resize:vertical;outline:none;background:#fff;}
+  #note:focus{border-color:#3b82f6;}
+  .desc-mod{margin-top:16px;}
+  .desc-text{background:#fff;border:1px solid #e2e8f0;border-radius:8px;padding:12px 14px 12px 12px;
+             font-size:13px;color:#4b5563;line-height:1.7;}
+  .desc-text ul{margin:0;padding-left:1.2em;}
+  .desc-text b{color:#1f2937;}
+</style>
 </head>
 <body>
-<p>正在打开<a href="./plan.html">方案页</a>…</p>
+<div class="page">
+  <div class="title-row">
+    <h1>方案</h1>
+    <div class="scheme-bar">
+      <div class="scheme-combo" id="scheme-combo">
+        <span id="scheme-name" class="scheme-name v" contenteditable spellcheck="false"></span>
+        <button class="scheme-toggle" id="scheme-toggle" type="button" title="切换方案">▾</button>
+      </div>
+      <button class="btn" id="btn-add">＋ 新增</button>
+      <button class="btn danger" id="btn-del">删除</button>
+      <button class="btn" id="btn-import">导入</button>
+      <button class="btn" id="btn-export">导出</button>
+      <input type="file" id="file-import" accept=".json,application/json" hidden>
+    </div>
+  </div>
+  <div class="ops">
+    <button class="btn primary" id="btn-reset-part">重置部分</button>
+    <button class="btn primary" id="btn-reset-all">重置全部</button>
+    <button class="btn primary" id="btn-color-edit">底色编辑</button>
+  </div>
+  <div class="color-bar" id="color-bar">
+    <span class="swatch-label">底色：</span>
+    <button class="swatch selected" type="button" data-color="#D9E8F8" title="浅蓝"
+            style="background:#D9E8F8"></button>
+    <button class="swatch" type="button" data-color="#E6E6E6" title="浅灰"
+            style="background:#E6E6E6"></button>
+    <label class="swatch custom" title="自定义颜色">
+      <input type="color" id="color-custom" value="#D9E8F8">
+    </label>
+    <button class="swatch clear" type="button" id="color-eraser" title="清空该格底色"></button>
+    <button class="btn" type="button" id="color-clear-all">清空全部</button>
+    <button class="btn primary" type="button" id="color-confirm">确认</button>
+    <button class="btn" type="button" id="color-cancel">取消</button>
+  </div>
+  <table class="main-table">
+    <thead></thead>
+    <tbody></tbody>
+  </table>
+  <div class="note-mod">
+    <div class="mod-title">备注</div>
+    <textarea id="note" placeholder="在此输入备注…（随当前方案自动保存）"></textarea>
+  </div>
+  <div class="desc-mod">
+    <div class="mod-title">说明</div>
+    <div class="desc-text">
+      <ul>
+        <li><b>重置部分</b>＝清空第 <span data-desc="cols"></span> 列第 <span data-desc="partRows"></span> 行；<b>重置全部</b>＝清空第 <span data-desc="cols"></span> 列第 <span data-desc="allRows"></span> 行（含第八行名称恢复为“--”）</li>
+        <li>主表数据格（第 <span data-desc="cols"></span> 列）<b>点击即弹出下拉选择</b>：选项 = 第八行“总计”右侧的非“--”内容，第八行改名后选项与已选内容自动同步；未选择的格子在下拉列表中显示[空]，单元格内显示为空白</li>
+        <li><b>第 <span data-desc="countRow"></span> 行</b>自动统计每个名称在第 <span data-desc="dataRows"></span> 行数据中出现的次数（0 不显示）</li>
+        <li><b>第 <span data-desc="numRow"></span> 行第 1 格</b>为第 <span data-desc="numRow"></span> 行数字之和</li>
+        <li>第一列深灰格文字可直接编辑</li>
+        <li><b>底色编辑</b>：可选浅蓝、浅灰或自定义颜色，<b>点格子涂色，再点一次取消</b>；选「清空」后点击同样恢复默认底色。确认后随当前方案保存；第 7 行与第 <span data-desc="countRow"></span> 行不参与，重置按钮不会清除已设底色</li>
+        <li><b>数据自动保存在本浏览器</b>：刷新/重开/页面更新都不丢，每人各自一份，不写回任何文件</li>
+        <li>多方案之间数据相互独立，可随时切换、新增、改名、删除</li>
+      </ul>
+    </div>
+  </div>
+</div>
+<div id="cell-popup" class="cell-popup"></div>
+<div id="scheme-popup" class="scheme-popup"></div>
+<script>
+(function(){
+  // ===== 配置（改结构只动这里） =====
+  var CFG = {
+    COLS: 9,
+    ROWS: { header: 1, data: [2, 3, 4, 5, 6], gray: 7, source: 8, number: 9, count: 10 }
+  };
+  // 可涂底色的行：数据行 + 第9行（排除表头/第7行灰底/总计深色行/第10行自动色）
+  var PAINT_ROWS = CFG.ROWS.data.concat([CFG.ROWS.number]);
+  var SWATCH_DEFAULT = '#D9E8F8';
+  function isPaintable(r, c){
+    return c >= 2 && c <= CFG.COLS && PAINT_ROWS.indexOf(r) !== -1;
+  }
+  var SCHEME_KEY = 'fangan-data-v4';
+  var OLD_KEY = 'fangan-data-v3';
+
+  // ===== 默认值（唯一来源） =====
+  var DEFAULTS = {};
+  DEFAULTS['1,1'] = '位置';
+  for (var col = 2; col <= CFG.COLS; col++) DEFAULTS['1,' + col] = '名称' + (col - 1);
+  DEFAULTS[CFG.ROWS.source + ',1'] = '总计';
+  for (var col2 = 2; col2 <= CFG.COLS; col2++) DEFAULTS[CFG.ROWS.source + ',' + col2] = '--';
+
+  var grid = {};
+  var colorEdit = { active: false, brush: SWATCH_DEFAULT, working: {} };
+
+  // ===== DOM 辅助 =====
+  function mk(tag, cls){
+    var el = document.createElement(tag);
+    if(cls) el.className = cls;
+    return el;
+  }
+  function editableSpan(cls, rc, text){
+    var sp = mk('span', cls);
+    sp.setAttribute('contenteditable', '');
+    sp.setAttribute('spellcheck', 'false');
+    sp.dataset.rc = rc;
+    if(text) sp.textContent = text;
+    return sp;
+  }
+  function plainSpan(cls, rc){
+    var sp = mk('span', cls);
+    sp.dataset.rc = rc;
+    return sp;
+  }
+  // 可涂格标记：用 data-paint-rc，避免混入 [data-rc] 的 90 格校验
+  function markPaintable(td, r, c){
+    if(!isPaintable(r, c)) return;
+    td.classList.add('paint-cell');
+    td.dataset.paintRc = r + ',' + c;
+  }
+
+  // ===== 生成表格 =====
+  function buildTable(){
+    var table = document.querySelector('.main-table');
+    var thead = table.querySelector('thead');
+    var tbody = table.querySelector('tbody');
+    var c, td;
+
+    var headRow = mk('tr', 'row-hd');
+    for (c = 1; c <= CFG.COLS; c++){
+      var th = mk('th', c === 1 ? 'center black' : 'center');
+      th.appendChild(editableSpan('v', '1,' + c, DEFAULTS['1,' + c]));
+      headRow.appendChild(th);
+    }
+    thead.appendChild(headRow);
+
+    CFG.ROWS.data.forEach(function(r){
+      var tr = mk('tr', 'row-white');
+      var td1 = mk('td', 'dg center');
+      td1.appendChild(editableSpan('v', r + ',1', DEFAULTS[r + ',1']));
+      tr.appendChild(td1);
+      for (var cc = 2; cc <= CFG.COLS; cc++){
+        var cell = mk('td', 'data-cell');
+        markPaintable(cell, r, cc);
+        var text = mk('span', 'cell-text');
+        text.dataset.cur = r + ',' + cc;
+        cell.appendChild(text);
+        var sel = mk('select', 'cell-select');
+        sel.dataset.rc = r + ',' + cc;
+        sel.appendChild(new Option('[空]', ''));
+        cell.appendChild(sel);
+        tr.appendChild(cell);
+      }
+      tbody.appendChild(tr);
+    });
+
+    var g = CFG.ROWS.gray;
+    var rowG = mk('tr', '');
+    var g1 = mk('td', 'dg center');
+    g1.appendChild(editableSpan('v', g + ',1', DEFAULTS[g + ',1']));
+    rowG.appendChild(g1);
+    for (c = 2; c <= CFG.COLS; c++){
+      td = mk('td', 'center e6');
+      td.appendChild(editableSpan('v', g + ',' + c, DEFAULTS[g + ',' + c]));
+      rowG.appendChild(td);
+    }
+    tbody.appendChild(rowG);
+
+    var s = CFG.ROWS.source;
+    var rowS = mk('tr', 'row-src');
+    var s1 = mk('td', 'center black');
+    s1.appendChild(editableSpan('v', s + ',1', DEFAULTS[s + ',1']));
+    rowS.appendChild(s1);
+    for (c = 2; c <= CFG.COLS; c++){
+      td = mk('td', 'center');
+      td.appendChild(editableSpan('v', s + ',' + c, DEFAULTS[s + ',' + c]));
+      rowS.appendChild(td);
+    }
+    tbody.appendChild(rowS);
+
+    var n = CFG.ROWS.number;
+    var rowN = mk('tr', 'row-white');
+    var n1 = mk('td', 'dg center');
+    n1.appendChild(plainSpan('v computed', n + ',1'));
+    rowN.appendChild(n1);
+    for (c = 2; c <= CFG.COLS; c++){
+      td = mk('td', 'center');
+      markPaintable(td, n, c);
+      td.appendChild(editableSpan('v num', n + ',' + c, ''));
+      rowN.appendChild(td);
+    }
+    tbody.appendChild(rowN);
+
+    var k = CFG.ROWS.count;
+    var rowK = mk('tr', 'row-white');
+    var k1 = mk('td', 'dg center');
+    k1.appendChild(plainSpan('v computed', k + ',1'));
+    rowK.appendChild(k1);
+    for (c = 2; c <= CFG.COLS; c++){
+      td = mk('td', 'center');
+      td.appendChild(plainSpan('v computed', k + ',' + c));
+      rowK.appendChild(td);
+    }
+    tbody.appendChild(rowK);
+  }
+
+  function buildGrid(){
+    grid = {};
+    document.querySelectorAll('[data-rc]').forEach(function(el){
+      grid[el.dataset.rc] = el;
+    });
+    var expected = CFG.ROWS.count * CFG.COLS;
+    var actual = Object.keys(grid).length;
+    if (actual !== expected){
+      console.error('[方案] data-rc 数量异常：期望 ' + expected + '，实际 ' + actual);
+    }
+    document.querySelectorAll('select.cell-select').forEach(function(sel){
+      var rc = sel.dataset.rc;
+      if (!sel.parentElement.querySelector('.cell-text[data-cur="' + rc + '"]')){
+        console.error('[方案] 单元格显示与取值未配对：' + rc);
+      }
+    });
+  }
+
+  function fillDesc(){
+    var map = {
+      cols: '2～' + CFG.COLS,
+      dataRows: CFG.ROWS.data[0] + '～' + CFG.ROWS.data[CFG.ROWS.data.length - 1],
+      partRows: CFG.ROWS.data[0] + '～' + CFG.ROWS.gray,
+      allRows: CFG.ROWS.data[0] + '～' + CFG.ROWS.number,
+      countRow: String(CFG.ROWS.count),
+      numRow: String(CFG.ROWS.number)
+    };
+    document.querySelectorAll('[data-desc]').forEach(function(el){
+      var v = map[el.getAttribute('data-desc')];
+      if (v !== undefined) el.textContent = v;
+    });
+  }
+
+  buildTable();
+  buildGrid();
+  fillDesc();
+
+  var noteEl = document.getElementById('note');
+  var mainTable = document.querySelector('.main-table');
+
+  // ===== 单元格读写 =====
+  function cellText(el){
+    if(!el) return '';
+    if(el.tagName === 'SELECT') return el.value;
+    return el.textContent.trim();
+  }
+  function rawText(r, c){ return cellText(grid[r + ',' + c]); }
+  function val(r, c){
+    var t = rawText(r, c);
+    if(t === '') return null;
+    var n = Number(t);
+    return isNaN(n) ? null : n;
+  }
+  function setDisplay(rc, v){
+    var el = grid[rc];
+    if(el) el.textContent = (v === 0 ? '' : String(v));
+  }
+  function setCellValue(rc, value){
+    var el = grid[rc];
+    if(!el) return;
+    var v = (value === null || value === undefined) ? '' : String(value);
+    if(el.classList.contains('computed')){
+      el.textContent = v;
+      return;
+    }
+    if(el.tagName === 'SELECT'){
+      if(v !== ''){
+        var exists = false;
+        for (var i = 0; i < el.options.length; i++){
+          if(el.options[i].value === v){ exists = true; break; }
+        }
+        if(!exists) el.appendChild(new Option(v, v));
+      }
+      el.value = v;
+      var sp = el.parentElement.querySelector('.cell-text');
+      if(sp) sp.textContent = v;
+    } else {
+      el.textContent = v;
+    }
+  }
+  function collect(){
+    var data = {};
+    Object.keys(grid).forEach(function(rc){
+      if(grid[rc].classList.contains('computed')) return;
+      data[rc] = cellText(grid[rc]);
+    });
+    return data;
+  }
+  function applyData(data){
+    data = data || {};
+    Object.keys(grid).forEach(function(rc){
+      if(grid[rc].classList.contains('computed')) return;
+      var v = Object.prototype.hasOwnProperty.call(data, rc) ? (data[rc] || '') : (DEFAULTS[rc] || '');
+      setCellValue(rc, v);
+    });
+  }
+  function rebuildOptions(){
+    var opts = [];
+    for (var c = 2; c <= CFG.COLS; c++){
+      var t = rawText(CFG.ROWS.source, c);
+      if(t !== '' && t !== '--' && opts.indexOf(t) === -1) opts.push(t);
+    }
+    document.querySelectorAll('select.cell-select').forEach(function(sel){
+      var cur = sel.value;
+      while(sel.options.length) sel.remove(0);
+      sel.appendChild(new Option('[空]', ''));
+      opts.forEach(function(o){ sel.appendChild(new Option(o, o)); });
+      if(cur !== '' && opts.indexOf(cur) !== -1) sel.value = cur;
+    });
+  }
+  function compute(){
+    var counts = [];
+    var labelRow = CFG.ROWS.source, numRow = CFG.ROWS.number, cntRow = CFG.ROWS.count;
+    for (var c = 2; c <= CFG.COLS; c++){
+      var label = rawText(labelRow, c).toLowerCase();
+      var cnt = 0;
+      if(label !== '' && label !== '--'){
+        CFG.ROWS.data.forEach(function(r){
+          for (var cc = 2; cc <= CFG.COLS; cc++){
+            var t = rawText(r, cc).toLowerCase();
+            if(t !== '' && t === label) cnt++;
+          }
+        });
+      }
+      counts.push(cnt);
+      setDisplay(cntRow + ',' + c, cnt);
+      // 状态底色：少于默认灰 / 等于浅绿 / 大于浅红（目标 = 第 9 行对应数字）
+      var target = val(numRow, c);
+      var el = grid[cntRow + ',' + c];
+      var tdEl = el ? el.parentElement : null;
+      if(tdEl){
+        var bg = '#E6E6E6';
+        if(target !== null && cnt === target) bg = '#CAF2C2';
+        else if(target !== null && cnt > target) bg = '#FFD1CA';
+        tdEl.style.background = bg;
+      }
+    }
+    var sum9 = 0;
+    for (var c2 = 2; c2 <= CFG.COLS; c2++){
+      var n2 = val(numRow, c2);
+      if(n2 !== null) sum9 += n2;
+    }
+    setDisplay(numRow + ',1', sum9);
+    var sum10 = 0;
+    for (var i = 0; i < counts.length; i++) sum10 += counts[i];
+    setDisplay(cntRow + ',1', sum10);
+  }
+
+  // ===== 底色编辑 =====
+  var colorBar = document.getElementById('color-bar');
+  var colorBtn = document.getElementById('btn-color-edit');
+  var colorCustom = document.getElementById('color-custom');
+
+  function paintCells(){
+    return document.querySelectorAll('.main-table td.paint-cell');
+  }
+  function cloneColors(src){
+    var out = {};
+    if(src) Object.keys(src).forEach(function(k){ out[k] = src[k]; });
+    return out;
+  }
+  function applyColors(colors){
+    colors = colors || {};
+    paintCells().forEach(function(td){
+      var bg = colors[td.dataset.paintRc];
+      td.style.backgroundColor = bg || '';
+    });
+  }
+  function refreshSwatches(){
+    colorBar.querySelectorAll('.swatch[data-color]').forEach(function(sw){
+      sw.classList.toggle('selected', colorEdit.brush === sw.dataset.color);
+    });
+    var eraser = document.getElementById('color-eraser');
+    if(eraser) eraser.classList.toggle('selected', colorEdit.brush === '');
+    var customSw = colorBar.querySelector('.swatch.custom');
+    var isDefault = colorEdit.brush === '' || colorEdit.brush === '#D9E8F8' || colorEdit.brush === '#E6E6E6';
+    if(customSw) customSw.classList.toggle('selected', !isDefault);
+  }
+  function setBrush(color){
+    colorEdit.brush = color ? String(color).toUpperCase() : '';
+    if(colorEdit.brush && colorCustom){
+      colorCustom.value = colorEdit.brush;
+      var customSw = colorBar.querySelector('.swatch.custom');
+      if(customSw){
+        if(colorEdit.brush === '#D9E8F8' || colorEdit.brush === '#E6E6E6') customSw.style.background = '';
+        else customSw.style.background = colorEdit.brush;
+      }
+    }
+    refreshSwatches();
+  }
+  function paintCell(td){
+    var rc = td.dataset.paintRc;
+    if(!rc) return;
+    if(!colorEdit.brush || colorEdit.working[rc] === colorEdit.brush){
+      delete colorEdit.working[rc];
+      td.style.backgroundColor = '';
+    } else {
+      colorEdit.working[rc] = colorEdit.brush;
+      td.style.backgroundColor = colorEdit.brush;
+    }
+  }
+  function enterColorEdit(){
+    disarmConfirms();
+    var s = current();
+    colorEdit.working = cloneColors(s ? s.colors : null);
+    colorEdit.active = true;
+    closePopup();
+    colorBar.classList.add('open');
+    mainTable.classList.add('color-editing');
+    colorBtn.textContent = '底色编辑中';
+    colorBtn.classList.remove('primary');
+    colorBtn.classList.add('edit-armed');
+    setBrush(colorEdit.brush || SWATCH_DEFAULT);
+    applyColors(colorEdit.working);
+  }
+  function exitColorEdit(commit){
+    if(!colorEdit.active) return;
+    colorEdit.active = false;
+    colorBar.classList.remove('open');
+    mainTable.classList.remove('color-editing');
+    colorBtn.textContent = '底色编辑';
+    colorBtn.classList.remove('edit-armed');
+    colorBtn.classList.add('primary');
+    var s = current();
+    if(s && commit){
+      var clean = {};
+      Object.keys(colorEdit.working).forEach(function(rc){
+        if(colorEdit.working[rc]) clean[rc] = colorEdit.working[rc];
+      });
+      s.colors = clean;
+      saveStore();
+    }
+    applyColors(s ? s.colors : null);
+  }
+  function clearAllColors(){
+    colorEdit.working = {};
+    applyColors({});
+  }
+
+  colorBtn.addEventListener('click', function(){
+    if(colorEdit.active) exitColorEdit(true);
+    else enterColorEdit();
+  });
+  colorBar.addEventListener('click', function(e){
+    var sw = e.target.closest ? e.target.closest('.swatch[data-color]') : null;
+    if(sw){ setBrush(sw.dataset.color); return; }
+    if(e.target.closest && e.target.closest('#color-eraser')){ setBrush(''); return; }
+    if(e.target.closest && e.target.closest('#color-clear-all')){ clearAllColors(); return; }
+    if(e.target.closest && e.target.closest('#color-confirm')){ exitColorEdit(true); return; }
+    if(e.target.closest && e.target.closest('#color-cancel')){ exitColorEdit(false); return; }
+  });
+  if(colorCustom){
+    colorCustom.addEventListener('input', function(){ setBrush(colorCustom.value); });
+    colorCustom.addEventListener('change', function(){ setBrush(colorCustom.value); });
+  }
+  document.addEventListener('keydown', function(e){
+    if(e.key === 'Escape' && colorEdit.active) exitColorEdit(false);
+  });
+
+  // ===== 方案存储 =====
+  var schemes = [], currentId = null, prevSrc = {};
+  function current(){
+    for (var i = 0; i < schemes.length; i++) if(schemes[i].id === currentId) return schemes[i];
+    return null;
+  }
+  function loadStore(){
+    try{ return JSON.parse(localStorage.getItem(SCHEME_KEY)); }catch(e){ return null; }
+  }
+  function saveStore(){
+    try{ localStorage.setItem(SCHEME_KEY, JSON.stringify({schemes: schemes, current: currentId})); }catch(e){}
+  }
+  function defaultData(){
+    var d = {};
+    Object.keys(DEFAULTS).forEach(function(k){ d[k] = DEFAULTS[k]; });
+    return d;
+  }
+  function saveCurrent(){
+    var s = current(); if(!s) return;
+    s.data = collect();
+    if(noteEl) s.note = noteEl.value;
+    saveStore();
+  }
+  function refreshSchemeBar(){
+    var s = current();
+    var el = document.getElementById('scheme-name');
+    if(el && document.activeElement !== el) el.textContent = s ? s.name : '';
+  }
+  function initPrev(){
+    for (var c = 2; c <= CFG.COLS; c++) prevSrc[c] = rawText(CFG.ROWS.source, c);
+  }
+  function switchScheme(id){
+    disarmConfirms();
+    if(colorEdit.active) exitColorEdit(false);
+    saveCurrent();
+    currentId = id;
+    var s = current();
+    applyData(s ? s.data : defaultData());
+    if(noteEl) noteEl.value = s ? (s.note || '') : '';
+    initPrev();
+    rebuildOptions();
+    compute();
+    applyColors(s ? s.colors : null);
+    refreshSchemeBar();
+    saveStore();
+  }
+  function handleSrcRename(el){
+    var rc = el && el.dataset ? el.dataset.rc : '';
+    if(!rc) return;
+    var parts = rc.split(',');
+    if(Number(parts[0]) !== CFG.ROWS.source || Number(parts[1]) < 2) return;
+    var c = parts[1];
+    var newName = cellText(el);
+    var oldName = prevSrc[c];
+    if(oldName && oldName !== newName){
+      document.querySelectorAll('select.cell-select').forEach(function(sel){
+        if(sel.value === oldName) setCellValue(sel.dataset.rc, newName);
+      });
+    }
+    prevSrc[c] = newName;
+  }
+  function resetCells(endRow){
+    for (var r = 2; r <= endRow; r++){
+      for (var c = 2; c <= CFG.COLS; c++){
+        var rc = r + ',' + c;
+        if(!grid[rc]) continue;
+        if(r === CFG.ROWS.source){
+          setCellValue(rc, '--');
+          prevSrc[c] = '--';
+        } else {
+          setCellValue(rc, '');
+        }
+      }
+    }
+    rebuildOptions();
+    compute();
+    saveCurrent();
+  }
+
+  // ===== 方案栏 =====
+  document.getElementById('btn-add').addEventListener('click', function(){
+    var n = schemes.length + 1, name = '方案' + n;
+    var names = schemes.map(function(s){ return s.name; });
+    while(names.indexOf(name) !== -1){ n++; name = '方案' + n; }
+    var id = 's' + Date.now();
+    schemes.push({id: id, name: name, data: defaultData(), note: '', colors: {}});
+    switchScheme(id);
+  });
+
+  var nameEl = document.getElementById('scheme-name');
+  var nameBeforeEdit = '';
+  nameEl.addEventListener('focus', function(){ nameBeforeEdit = nameEl.textContent.trim(); });
+  nameEl.addEventListener('input', function(){
+    var s = current(); if(!s) return;
+    s.name = nameEl.textContent.trim();
+    saveStore();
+  });
+  nameEl.addEventListener('blur', function(){
+    var s = current(); if(!s) return;
+    var name = nameEl.textContent.trim();
+    if(name === ''){ name = nameBeforeEdit || '方案'; nameEl.textContent = name; s.name = name; }
+    refreshSchemeBar();
+    saveStore();
+  });
+  nameEl.addEventListener('keydown', function(e){
+    if(e.key === 'Enter'){ e.preventDefault(); nameEl.blur(); }
+  });
+
+  var schemeCombo = document.getElementById('scheme-combo');
+  var schemeToggle = document.getElementById('scheme-toggle');
+  var schemePopup = document.getElementById('scheme-popup');
+  function closeSchemePopup(){ schemePopup.classList.remove('open'); }
+  function openSchemePopup(){
+    schemePopup.innerHTML = '';
+    schemes.forEach(function(s){
+      var row = document.createElement('div');
+      row.className = 'scheme-option' + (s.id === currentId ? ' active' : '');
+      row.dataset.id = s.id;
+      row.textContent = s.name;
+      schemePopup.appendChild(row);
+    });
+    var rect = schemeCombo.getBoundingClientRect();
+    schemePopup.style.minWidth = rect.width + 'px';
+    schemePopup.style.left = rect.left + 'px';
+    schemePopup.style.top = (rect.bottom + 4) + 'px';
+    schemePopup.classList.add('open');
+  }
+  schemeToggle.addEventListener('click', function(e){
+    e.stopPropagation();
+    if(schemePopup.classList.contains('open')) closeSchemePopup();
+    else openSchemePopup();
+  });
+  schemePopup.addEventListener('click', function(e){
+    var row = e.target.closest('.scheme-option'); if(!row) return;
+    closeSchemePopup();
+    switchScheme(row.dataset.id);
+  });
+  document.addEventListener('mousedown', function(e){
+    if(!schemePopup.classList.contains('open')) return;
+    if(schemePopup.contains(e.target)) return;
+    if(schemeCombo.contains(e.target)) return;
+    closeSchemePopup();
+  });
+  window.addEventListener('scroll', closeSchemePopup, true);
+  document.addEventListener('keydown', function(e){ if(e.key === 'Escape') closeSchemePopup(); });
+
+  // ===== 数据格下拉 =====
+  var popup = document.getElementById('cell-popup');
+  var popupFor = null;
+  function closePopup(){
+    popup.classList.remove('open');
+    if(popupFor) popupFor.parentElement.classList.remove('popup-open');
+    popupFor = null;
+  }
+  function openPopup(selectEl){
+    closePopup();                          // 先关闭已打开的弹窗（一次只显示一个）
+    popupFor = selectEl;
+    selectEl.parentElement.classList.add('popup-open');
+    popup.innerHTML = '';
+    Array.from(selectEl.options).forEach(function(o){
+      var item = document.createElement('div');
+      item.className = 'popup-item' + (o.selected ? ' active' : '');
+      item.dataset.value = o.value;
+      item.textContent = o.textContent;
+      popup.appendChild(item);
+    });
+    var rect = selectEl.parentElement.getBoundingClientRect();
+    popup.style.minWidth = Math.max(rect.width, 140) + 'px';
+    popup.style.left = rect.left + 'px';
+    popup.style.top = (rect.bottom + 4) + 'px';
+    popup.style.visibility = 'hidden';
+    popup.classList.add('open');
+    var h = popup.offsetHeight;
+    if(rect.bottom + h > window.innerHeight) popup.style.top = (rect.top - h - 4) + 'px';
+    popup.style.visibility = 'visible';
+  }
+  popup.addEventListener('click', function(e){
+    var item = e.target.closest('.popup-item'); if(!item) return;
+    if(!popupFor) return;
+    setCellValue(popupFor.dataset.rc, item.dataset.value);
+    closePopup();
+    compute();
+    saveCurrent();
+  });
+  document.addEventListener('mousedown', function(e){
+    if(!popup.classList.contains('open')) return;
+    if(popup.contains(e.target)) return;
+    var cell = e.target.closest ? e.target.closest('td.data-cell') : null;
+    if(cell) return;
+    closePopup();
+  });
+  window.addEventListener('scroll', function(e){
+    if(popup.contains(e.target)) return;     // 弹层内部滚动不关闭
+    closePopup();
+  }, true);
+  window.addEventListener('resize', closePopup);
+  document.addEventListener('keydown', function(e){ if(e.key === 'Escape') closePopup(); });
+
+  mainTable.addEventListener('click', function(e){
+    if(colorEdit.active){
+      var paintTd = e.target.closest ? e.target.closest('td.paint-cell') : null;
+      if(paintTd) paintCell(paintTd);
+      return;
+    }
+    var td = e.target.closest ? e.target.closest('td.data-cell') : null;
+    if(!td) return;
+    var sel = td.querySelector('select.cell-select');
+    if(sel) openPopup(sel);
+  });
+
+  // ===== 删除 / 重置 =====
+  function disarmConfirms(){
+    document.querySelectorAll('[data-confirming="1"]').forEach(function(el){
+      el.dataset.confirming = '';
+      el.textContent = el.dataset.orig || el.textContent;
+    });
+  }
+  var delBtn = document.getElementById('btn-del');
+  delBtn.dataset.orig = delBtn.textContent;
+  delBtn.addEventListener('click', function(){
+    if(delBtn.dataset.confirming !== '1'){
+      disarmConfirms();
+      delBtn.dataset.confirming = '1';
+      delBtn.textContent = '确认删除？';
+      return;
+    }
+    delBtn.dataset.confirming = ''; delBtn.textContent = delBtn.dataset.orig;
+    disarmConfirms();
+    if(colorEdit.active) exitColorEdit(false);
+    var idx = -1;
+    for (var i = 0; i < schemes.length; i++) if(schemes[i].id === currentId) idx = i;
+    if(idx === -1) return;
+    schemes.splice(idx, 1);
+    if(schemes.length === 0){
+      schemes.push({id: 's' + Date.now(), name: '方案1', data: defaultData(), note: '', colors: {}});
+    }
+    currentId = schemes[Math.max(0, idx - 1)].id;
+    var s = current();
+    applyData(s ? s.data : defaultData());
+    if(noteEl) noteEl.value = s ? (s.note || '') : '';
+    initPrev();
+    rebuildOptions();
+    compute();
+    applyColors(s ? s.colors : null);
+    refreshSchemeBar();
+    saveStore();
+  });
+
+  function bindConfirm(btn, confirmingText, action){
+    btn.dataset.orig = btn.textContent;
+    btn.addEventListener('click', function(){
+      if(btn.dataset.confirming !== '1'){
+        disarmConfirms();
+        btn.dataset.confirming = '1';
+        btn.textContent = confirmingText;
+        return;
+      }
+      btn.dataset.confirming = '';
+      btn.textContent = btn.dataset.orig;
+      action();
+    });
+  }
+  bindConfirm(document.getElementById('btn-reset-part'), '确认重置部分？', function(){ resetCells(CFG.ROWS.gray); });
+  bindConfirm(document.getElementById('btn-reset-all'), '确认重置全部？', function(){ resetCells(CFG.ROWS.number); });
+
+  // 待确认态逃生口：点别处或按 Esc 取消
+  document.addEventListener('mousedown', function(e){
+    if(e.target.closest && e.target.closest('[data-confirming="1"]')) return;
+    disarmConfirms();
+  });
+  document.addEventListener('keydown', function(e){
+    if(e.key === 'Escape') disarmConfirms();
+  });
+
+  // ===== 导入 / 导出 =====
+  function pad2(n){ return n < 10 ? '0' + n : String(n); }
+  function dateStamp(){
+    var d = new Date();
+    return d.getFullYear() + pad2(d.getMonth() + 1) + pad2(d.getDate()) + '-' +
+           pad2(d.getHours()) + pad2(d.getMinutes());
+  }
+  function safeFileName(name){
+    var s = String(name || '方案').replace(/[\\/:*?"<>|\s]+/g, '_').replace(/^_+|_+$/g, '');
+    return s || '方案';
+  }
+  function newSchemeId(){
+    var id;
+    do {
+      id = 's' + Date.now() + Math.floor(Math.random() * 100000);
+    } while (schemes.some(function(s){ return s.id === id; }));
+    return id;
+  }
+  function uniqueSchemeName(base){
+    var name = String(base == null ? '' : base).trim() || '导入方案';
+    var names = schemes.map(function(s){ return s.name; });
+    if(names.indexOf(name) === -1) return name;
+    var n = 2;
+    while(names.indexOf(name + '（' + n + '）') !== -1) n++;
+    return name + '（' + n + '）';
+  }
+  function normalizeImportedData(d){
+    var out = {};
+    if(!d || typeof d !== 'object' || Array.isArray(d)) return out;
+    Object.keys(d).forEach(function(k){
+      var p = k.split(',');
+      if(p.length !== 2) return;
+      var r = Number(p[0]), c = Number(p[1]);
+      if(!(r >= 1 && r <= CFG.ROWS.count && c >= 1 && c <= CFG.COLS)) return;
+      out[r + ',' + c] = String(d[k] == null ? '' : d[k]);
+    });
+    return out;
+  }
+  function normalizeImportedColors(c){
+    var out = {};
+    if(!c || typeof c !== 'object' || Array.isArray(c)) return out;
+    Object.keys(c).forEach(function(k){
+      var p = k.split(',');
+      if(p.length !== 2) return;
+      var r = Number(p[0]), col = Number(p[1]);
+      if(!isPaintable(r, col)) return;
+      var v = String(c[k] == null ? '' : c[k]);
+      if(/^#[0-9a-fA-F]{6}$/.test(v)) out[r + ',' + col] = v.toUpperCase();
+    });
+    return out;
+  }
+  function extractImportedSchemes(parsed){
+    if(!parsed || typeof parsed !== 'object') return [];
+    if(parsed.app === 'fangan' && parsed.scheme && typeof parsed.scheme === 'object') return [parsed.scheme];
+    if(Array.isArray(parsed)) return parsed;
+    if(Array.isArray(parsed.schemes)) return parsed.schemes;
+    if(parsed.data && typeof parsed.data === 'object') return [parsed];
+    return [];
+  }
+  function exportCurrentScheme(){
+    var s = current();
+    if(!s) return;
+    saveCurrent();
+    var payload = {
+      app: 'fangan',
+      version: 1,
+      exportedAt: new Date().toISOString(),
+      scheme: { name: s.name, data: s.data || {}, note: s.note || '', colors: s.colors || {} }
+    };
+    var blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' });
+    var url = URL.createObjectURL(blob);
+    var a = document.createElement('a');
+    a.href = url;
+    a.download = safeFileName(s.name) + '-' + dateStamp() + '.json';
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    setTimeout(function(){ URL.revokeObjectURL(url); }, 1000);
+  }
+  function importFromFile(file){
+    var reader = new FileReader();
+    reader.onload = function(){
+      try{
+        var parsed = JSON.parse(String(reader.result));
+        var list = extractImportedSchemes(parsed);
+        var firstId = null;
+        list.forEach(function(item){
+          if(!item || typeof item !== 'object') return;
+          var id = newSchemeId();
+          schemes.push({
+            id: id,
+            name: uniqueSchemeName(item.name),
+            data: normalizeImportedData(item.data),
+            note: typeof item.note === 'string' ? item.note : '',
+            colors: normalizeImportedColors(item.colors)
+          });
+          if(!firstId) firstId = id;
+        });
+        if(!firstId) throw new Error('没有找到可导入的方案');
+        saveStore();
+        switchScheme(firstId);
+      }catch(err){
+        alert('导入失败：' + ((err && err.message) ? err.message : '文件格式不正确'));
+      }
+      fileImport.value = '';
+    };
+    reader.onerror = function(){
+      alert('导入失败：无法读取文件');
+      fileImport.value = '';
+    };
+    reader.readAsText(file, 'utf-8');
+  }
+
+  var fileImport = document.getElementById('file-import');
+  document.getElementById('btn-import').addEventListener('click', function(){
+    fileImport.value = '';
+    fileImport.click();
+  });
+  fileImport.addEventListener('change', function(){
+    var f = fileImport.files && fileImport.files[0];
+    if(f) importFromFile(f);
+  });
+  bindConfirm(document.getElementById('btn-export'), '确认导出？', exportCurrentScheme);
+
+  if(noteEl) noteEl.addEventListener('input', saveCurrent);
+
+  mainTable.addEventListener('input', function(e){
+    if(e.target && e.target.tagName === 'SELECT'){
+      setCellValue(e.target.dataset.rc, e.target.value);   // 空显示为空白
+    }
+    handleSrcRename(e.target);
+    rebuildOptions();
+    compute();
+    saveCurrent();
+  });
+
+  // ===== 初始化 =====
+  var store = loadStore();
+  if(store && store.schemes && store.schemes.length){
+    schemes = store.schemes;
+    currentId = store.current;
+    if(!current()) currentId = schemes[0].id;
+  } else {
+    var migrated = null;
+    try{ migrated = JSON.parse(localStorage.getItem(OLD_KEY)); }catch(e){}
+    var sid = 's' + Date.now();
+    schemes = [{id: sid, name: '方案1', data: (migrated && typeof migrated === 'object') ? migrated : defaultData(), note: '', colors: {}}];
+    currentId = sid;
+    saveStore();
+  }
+  schemes.forEach(function(s){ s.colors = s.colors || {}; });
+  applyData((current() || {data: defaultData()}).data);
+  if(noteEl) noteEl.value = (current() || {note: ''}).note || '';
+  initPrev();
+  rebuildOptions();
+  compute();
+  applyColors(current() ? current().colors : null);
+  refreshSchemeBar();
+})();
+</script>
 </body>
 </html>
