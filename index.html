@@ -25,6 +25,16 @@
   .btn:hover{background:#f1f5f9;}
   .btn.danger{color:#b91c1c;border-color:#fca5a5;}
   .btn.danger:hover{background:#fef2f2;}
+  .btn.danger-solid{background:#b91c1c;border-color:#b91c1c;color:#fff;}
+  .btn.danger-solid:hover{background:#991b1b;}
+  .confirm-mask{position:fixed;inset:0;background:rgba(15,23,42,.38);display:flex;
+                align-items:center;justify-content:center;z-index:80;}
+  .confirm-mask[hidden]{display:none;}
+  .confirm-dialog{width:320px;background:#fff;border-radius:10px;padding:18px 18px 14px;
+                  box-shadow:0 18px 50px rgba(15,23,42,.28);}
+  .confirm-title{font-weight:600;font-size:15px;color:#1f2937;margin-bottom:8px;}
+  .confirm-text{font-size:13px;color:#4b5563;line-height:1.6;margin-bottom:14px;}
+  .confirm-actions{display:flex;justify-content:flex-end;gap:8px;}
   .scheme-combo{display:inline-flex;align-items:stretch;width:220px;background:#fff;
                 border:1px solid #cbd5e1;border-radius:6px;overflow:hidden;}
   .scheme-toggle{width:28px;border:none;border-left:1px solid #e5e9ef;background:transparent;
@@ -205,6 +215,16 @@
         <li><b>数据自动保存在本浏览器</b>：刷新/重开/页面更新都不丢，每人各自一份，不写回任何文件</li>
         <li>多方案之间数据相互独立，可随时切换、新增、改名、删除</li>
       </ul>
+    </div>
+  </div>
+</div>
+<div class="confirm-mask" id="confirm-mask" hidden>
+  <div class="confirm-dialog" role="dialog" aria-modal="true">
+    <div class="confirm-title" id="confirm-title"></div>
+    <div class="confirm-text" id="confirm-text"></div>
+    <div class="confirm-actions">
+      <button class="btn" type="button" id="confirm-cancel">取消</button>
+      <button class="btn danger-solid" type="button" id="confirm-ok">确认</button>
     </div>
   </div>
 </div>
@@ -998,8 +1018,46 @@
       action();
     });
   }
-  bindConfirm(document.getElementById('btn-reset-part'), '确认清空？', function(){ resetCells(CFG.ROWS.gray); });
-  bindConfirm(document.getElementById('btn-reset-all'), '确认重置？', function(){ resetCells(CFG.ROWS.number); });
+  // ===== 清空 / 重置确认弹窗 =====
+  var confirmMask = document.getElementById('confirm-mask');
+  var confirmTitleEl = document.getElementById('confirm-title');
+  var confirmTextEl = document.getElementById('confirm-text');
+  var confirmAction = null;
+  function openConfirmDialog(title, text, action){
+    confirmTitleEl.textContent = title;
+    confirmTextEl.textContent = text;
+    confirmAction = action;
+    confirmMask.hidden = false;
+    var cancelBtn = document.getElementById('confirm-cancel');
+    if(cancelBtn) cancelBtn.focus();
+  }
+  function closeConfirmDialog(){
+    confirmMask.hidden = true;
+    confirmAction = null;
+  }
+  document.getElementById('confirm-cancel').addEventListener('click', closeConfirmDialog);
+  document.getElementById('confirm-ok').addEventListener('click', function(){
+    var fn = confirmAction;
+    closeConfirmDialog();
+    if(fn) fn();
+  });
+  confirmMask.addEventListener('click', function(e){
+    if(e.target === confirmMask) closeConfirmDialog();
+  });
+  document.addEventListener('keydown', function(e){
+    if(e.key === 'Escape' && !confirmMask.hidden) closeConfirmDialog();
+  });
+
+  document.getElementById('btn-reset-part').addEventListener('click', function(){
+    openConfirmDialog('确认清空？',
+      '将清空第 ' + CFG.ROWS.data[0] + '～' + CFG.ROWS.gray + ' 行的数据（第 2～' + CFG.COLS + ' 列）。',
+      function(){ resetCells(CFG.ROWS.gray); });
+  });
+  document.getElementById('btn-reset-all').addEventListener('click', function(){
+    openConfirmDialog('确认重置？',
+      '将清空第 ' + CFG.ROWS.data[0] + '～' + CFG.ROWS.number + ' 行的数据（第八行名称一并清空）。',
+      function(){ resetCells(CFG.ROWS.number); });
+  });
 
   // 待确认态逃生口：点别处或按 Esc 取消
   document.addEventListener('mousedown', function(e){
