@@ -150,9 +150,9 @@
     </div>
   </div>
   <div class="ops">
-    <button class="btn primary" id="btn-reset-part">重置部分</button>
-    <button class="btn primary" id="btn-reset-all">重置全部</button>
-    <button class="btn primary" id="btn-color-edit">底色编辑</button>
+    <button class="btn primary" id="btn-reset-part">清空</button>
+    <button class="btn primary" id="btn-reset-all">重置</button>
+    <button class="btn primary" id="btn-color-edit">颜色选择</button>
     <button class="btn primary" id="btn-fill-edit">字段填充</button>
   </div>
   <div class="color-bar" id="color-bar">
@@ -194,14 +194,14 @@
     <div class="mod-title">说明</div>
     <div class="desc-text">
       <ul>
-        <li><b>重置部分</b>＝清空第 <span data-desc="cols"></span> 列第 <span data-desc="partRows"></span> 行；<b>重置全部</b>＝清空第 <span data-desc="cols"></span> 列第 <span data-desc="allRows"></span> 行（第八行名称清空，显示灰色占位“--”）</li>
+        <li><b>清空</b>＝清空第 <span data-desc="cols"></span> 列第 <span data-desc="partRows"></span> 行；<b>重置</b>＝清空第 <span data-desc="cols"></span> 列第 <span data-desc="allRows"></span> 行（第八行名称清空，显示灰色占位“--”）</li>
         <li>主表数据格（第 <span data-desc="cols"></span> 列）<b>点击即弹出下拉选择</b>：选项 = 第八行“总计”右侧的非“--”内容，第八行改名后选项与已选内容自动同步；未选择的格子在下拉列表中显示[空]，单元格内显示为空白</li>
         <li><b>第 <span data-desc="countRow"></span> 行</b>自动统计每个名称在第 <span data-desc="dataRows"></span> 行数据中出现的次数（0 不显示）</li>
         <li><b>第 <span data-desc="numRow"></span> 行第 1 格</b>为第 <span data-desc="numRow"></span> 行数字之和</li>
         <li>第一列深灰格文字可直接编辑</li>
         <li><b>字段填充</b>：字段来自第八行名称；选字段后点数据格批量填充，可「清空」；确认后随当前方案保存，取消/Esc 还原，只影响第 2～6 行数据格</li>
         <li>灰色文字（第一行 <b>名称1～名称8</b>、第八行 <b>--</b>）是占位提示：点击进入编辑即消失，可直接输入；清空并离开编辑后自动恢复，不会写入数据</li>
-        <li><b>底色编辑</b>：可选浅蓝、浅灰、浅紫、浅绿、浅黄或自定义颜色，<b>点格子涂色，再点一次取消</b>；选「清空」后点击同样恢复默认底色。确认后随当前方案保存；第 7 行与第 <span data-desc="countRow"></span> 行不参与，重置按钮不会清除已设底色</li>
+        <li><b>颜色选择</b>：可选浅蓝、浅灰、浅紫、浅绿、浅黄或自定义颜色，<b>点格子涂色，再点一次取消</b>；选「清空」后点击同样恢复默认底色。确认后随当前方案保存；第 7 行与第 <span data-desc="countRow"></span> 行不参与，「清空/重置」按钮不会清除已设底色</li>
         <li><b>数据自动保存在本浏览器</b>：刷新/重开/页面更新都不丢，每人各自一份，不写回任何文件</li>
         <li>多方案之间数据相互独立，可随时切换、新增、改名、删除</li>
       </ul>
@@ -512,7 +512,7 @@
     setDisplay(cntRow + ',1', sum10);
   }
 
-  // ===== 底色编辑 =====
+  // ===== 颜色选择 =====
   var colorBar = document.getElementById('color-bar');
   var colorBtn = document.getElementById('btn-color-edit');
   var colorCustom = document.getElementById('color-custom');
@@ -580,7 +580,7 @@
     closePopup();
     colorBar.classList.add('open');
     mainTable.classList.add('color-editing');
-    colorBtn.textContent = '底色编辑中';
+    colorBtn.textContent = '颜色选择中';
     colorBtn.classList.remove('primary');
     colorBtn.classList.add('edit-armed');
     setBrush(colorEdit.brush || SWATCH_DEFAULT);
@@ -591,7 +591,7 @@
     colorEdit.active = false;
     colorBar.classList.remove('open');
     mainTable.classList.remove('color-editing');
-    colorBtn.textContent = '底色编辑';
+    colorBtn.textContent = '颜色选择';
     colorBtn.classList.remove('edit-armed');
     colorBtn.classList.add('primary');
     var s = current();
@@ -993,8 +993,8 @@
       action();
     });
   }
-  bindConfirm(document.getElementById('btn-reset-part'), '确认重置部分？', function(){ resetCells(CFG.ROWS.gray); });
-  bindConfirm(document.getElementById('btn-reset-all'), '确认重置全部？', function(){ resetCells(CFG.ROWS.number); });
+  bindConfirm(document.getElementById('btn-reset-part'), '确认清空？', function(){ resetCells(CFG.ROWS.gray); });
+  bindConfirm(document.getElementById('btn-reset-all'), '确认重置？', function(){ resetCells(CFG.ROWS.number); });
 
   // 待确认态逃生口：点别处或按 Esc 取消
   document.addEventListener('mousedown', function(e){
