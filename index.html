@@ -662,7 +662,7 @@
     clr.textContent = '清空';
     if(fillEdit.field === '') clr.classList.add('selected');
     fillChips.appendChild(clr);
-    fillHint.textContent = fields.length ? '选字段后点数据格填充' : '第八行还没有名称，先在第八行填写';
+    fillHint.textContent = fields.length ? '选字段后点数据格填充' : '';
   }
   function fillCell(td){
     if(fillEdit.field === null) return;
