@@ -80,6 +80,8 @@
   .v.num{font-weight:600;}
   th .v, td .v{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;
                padding:3px 8px;}
+  /* 空内容时 flex 不会居中光标行盒，改用行高让编辑光标上下居中 */
+  th .v:empty, td .v:empty{display:block;line-height:38px;text-align:center;}
   td.dg .v, tr.row-hd .v, tr.row-src .v{color:#fff;}
   .v[data-ph]:empty::before{content:attr(data-ph);opacity:.4;pointer-events:none;}
   .v[data-ph]:focus::before{content:none;}
