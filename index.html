@@ -58,6 +58,17 @@
                        cursor:pointer;border:none;padding:0;}
   .swatch-label{font-size:12px;color:#4b5563;}
   #color-confirm{margin-left:auto;}
+  #fill-confirm{margin-left:auto;}
+  .fill-chip{border:1px solid #cbd5e1;border-radius:14px;padding:3px 10px;background:#fff;
+             font:12px "PingFang SC","Microsoft YaHei",sans-serif;color:#374151;cursor:pointer;}
+  .fill-chip:hover{background:#f1f5f9;}
+  .fill-chip.selected{background:#203864;border-color:#203864;color:#fff;}
+  .fill-chip.clear-chip{color:#b91c1c;border-color:#fca5a5;}
+  .fill-chip.clear-chip.selected{background:#fef2f2;border-color:#ef4444;color:#b91c1c;}
+  .fill-hint{font-size:12px;color:#6b7280;}
+  .main-table.fill-editing td.data-cell{cursor:crosshair;
+          outline:1px dashed rgba(34,197,94,.5);outline-offset:-3px;}
+  .main-table.fill-editing td.data-cell .cell-text{pointer-events:none;}
   .main-table.color-editing td.paint-cell{cursor:crosshair;
           outline:1px dashed rgba(59,130,246,.45);outline-offset:-3px;}
   .main-table.color-editing td.paint-cell .v,
@@ -142,6 +153,7 @@
     <button class="btn primary" id="btn-reset-part">重置部分</button>
     <button class="btn primary" id="btn-reset-all">重置全部</button>
     <button class="btn primary" id="btn-color-edit">底色编辑</button>
+    <button class="btn primary" id="btn-fill-edit">字段填充</button>
   </div>
   <div class="color-bar" id="color-bar">
     <span class="swatch-label">底色：</span>
@@ -163,6 +175,13 @@
     <button class="btn primary" type="button" id="color-confirm">确认</button>
     <button class="btn" type="button" id="color-cancel">取消</button>
   </div>
+  <div class="color-bar" id="fill-bar">
+    <span class="swatch-label">字段：</span>
+    <span id="fill-chips" style="display:flex;gap:6px;flex-wrap:wrap"></span>
+    <span class="fill-hint" id="fill-hint"></span>
+    <button class="btn primary" type="button" id="fill-confirm">确认</button>
+    <button class="btn" type="button" id="fill-cancel">取消</button>
+  </div>
   <table class="main-table">
     <thead></thead>
     <tbody></tbody>
@@ -180,6 +199,7 @@
         <li><b>第 <span data-desc="countRow"></span> 行</b>自动统计每个名称在第 <span data-desc="dataRows"></span> 行数据中出现的次数（0 不显示）</li>
         <li><b>第 <span data-desc="numRow"></span> 行第 1 格</b>为第 <span data-desc="numRow"></span> 行数字之和</li>
         <li>第一列深灰格文字可直接编辑</li>
+        <li><b>字段填充</b>：字段来自第八行名称；选字段后点数据格批量填充，可「清空」；确认后随当前方案保存，取消/Esc 还原，只影响第 2～6 行数据格</li>
         <li>灰色文字（第一行 <b>名称1～名称8</b>、第八行 <b>--</b>）是占位提示：点击进入编辑即消失，可直接输入；清空并离开编辑后自动恢复，不会写入数据</li>
         <li><b>底色编辑</b>：可选浅蓝、浅灰、浅紫、浅绿、浅黄或自定义颜色，<b>点格子涂色，再点一次取消</b>；选「清空」后点击同样恢复默认底色。确认后随当前方案保存；第 7 行与第 <span data-desc="countRow"></span> 行不参与，重置按钮不会清除已设底色</li>
         <li><b>数据自动保存在本浏览器</b>：刷新/重开/页面更新都不丢，每人各自一份，不写回任何文件</li>
@@ -223,6 +243,7 @@
 
   var grid = {};
   var colorEdit = { active: false, brush: SWATCH_DEFAULT, working: {} };
+  var fillEdit = { active: false, field: null, snapshot: {} };
 
   // ===== DOM 辅助 =====
   function mk(tag, cls){
@@ -552,6 +573,7 @@
   }
   function enterColorEdit(){
     disarmConfirms();
+    if(fillEdit.active) exitFillEdit(true);
     var s = current();
     colorEdit.working = cloneColors(s ? s.colors : null);
     colorEdit.active = true;
@@ -608,6 +630,99 @@
     if(e.key === 'Escape' && colorEdit.active) exitColorEdit(false);
   });
 
+  // ===== 字段填充 =====
+  var fillBar = document.getElementById('fill-bar');
+  var fillBtn = document.getElementById('btn-fill-edit');
+  var fillChips = document.getElementById('fill-chips');
+  var fillHint = document.getElementById('fill-hint');
+
+  function fillFields(){
+    var out = [];
+    for (var c = 2; c <= CFG.COLS; c++){
+      var t = rawText(CFG.ROWS.source, c);
+      if(t !== '' && t !== '--' && out.indexOf(t) === -1) out.push(t);
+    }
+    return out;
+  }
+  function renderFillChips(){
+    var fields = fillFields();
+    fillChips.innerHTML = '';
+    fields.forEach(function(name){
+      var b = mk('button', 'fill-chip');
+      b.type = 'button';
+      b.dataset.value = name;
+      b.textContent = name;
+      if(fillEdit.field === name) b.classList.add('selected');
+      fillChips.appendChild(b);
+    });
+    var clr = mk('button', 'fill-chip clear-chip');
+    clr.type = 'button';
+    clr.dataset.value = '';
+    clr.textContent = '清空';
+    if(fillEdit.field === '') clr.classList.add('selected');
+    fillChips.appendChild(clr);
+    fillHint.textContent = fields.length ? '选字段后点数据格填充' : '第八行还没有名称，先在第八行填写';
+  }
+  function fillCell(td){
+    if(fillEdit.field === null) return;
+    var sel = td.querySelector('select.cell-select');
+    if(!sel) return;
+    setCellValue(sel.dataset.rc, fillEdit.field);
+    compute();
+  }
+  function enterFillEdit(){
+    disarmConfirms();
+    if(colorEdit.active) exitColorEdit(true);
+    fillEdit.snapshot = {};
+    document.querySelectorAll('.main-table td.data-cell').forEach(function(td){
+      var sel = td.querySelector('select.cell-select');
+      if(sel) fillEdit.snapshot[sel.dataset.rc] = sel.value;
+    });
+    fillEdit.active = true;
+    fillEdit.field = null;
+    closePopup();
+    fillBar.classList.add('open');
+    mainTable.classList.add('fill-editing');
+    fillBtn.textContent = '字段填充中';
+    fillBtn.classList.remove('primary');
+    fillBtn.classList.add('edit-armed');
+    renderFillChips();
+  }
+  function exitFillEdit(commit){
+    if(!fillEdit.active) return;
+    fillEdit.active = false;
+    fillBar.classList.remove('open');
+    mainTable.classList.remove('fill-editing');
+    fillBtn.textContent = '字段填充';
+    fillBtn.classList.remove('edit-armed');
+    fillBtn.classList.add('primary');
+    if(commit){
+      compute();
+      saveCurrent();
+    } else {
+      Object.keys(fillEdit.snapshot).forEach(function(rc){
+        setCellValue(rc, fillEdit.snapshot[rc]);
+      });
+      compute();
+    }
+    fillEdit.field = null;
+    fillEdit.snapshot = {};
+  }
+
+  fillBtn.addEventListener('click', function(){
+    if(fillEdit.active) exitFillEdit(true);
+    else enterFillEdit();
+  });
+  fillBar.addEventListener('click', function(e){
+    var chip = e.target.closest ? e.target.closest('.fill-chip') : null;
+    if(chip){ fillEdit.field = chip.dataset.value; renderFillChips(); return; }
+    if(e.target.closest && e.target.closest('#fill-confirm')){ exitFillEdit(true); return; }
+    if(e.target.closest && e.target.closest('#fill-cancel')){ exitFillEdit(false); return; }
+  });
+  document.addEventListener('keydown', function(e){
+    if(e.key === 'Escape' && fillEdit.active) exitFillEdit(false);
+  });
+
   // ===== 方案存储 =====
   var schemes = [], currentId = null, prevSrc = {};
   function current(){
@@ -641,6 +756,7 @@
   }
   function switchScheme(id){
     disarmConfirms();
+    if(fillEdit.active) exitFillEdit(false);
     if(colorEdit.active) exitColorEdit(false);
     saveCurrent();
     currentId = id;
@@ -670,6 +786,7 @@
     prevSrc[c] = newName;
   }
   function resetCells(endRow){
+    if(fillEdit.active) exitFillEdit(false);
     for (var r = 2; r <= endRow; r++){
       for (var c = 2; c <= CFG.COLS; c++){
         var rc = r + ',' + c;
@@ -807,6 +924,11 @@
   document.addEventListener('keydown', function(e){ if(e.key === 'Escape') closePopup(); });
 
   mainTable.addEventListener('click', function(e){
+    if(fillEdit.active){
+      var fillTd = e.target.closest ? e.target.closest('td.data-cell') : null;
+      if(fillTd) fillCell(fillTd);
+      return;
+    }
     if(colorEdit.active){
       var paintTd = e.target.closest ? e.target.closest('td.paint-cell') : null;
       if(paintTd) paintCell(paintTd);
@@ -836,6 +958,7 @@
     }
     delBtn.dataset.confirming = ''; delBtn.textContent = delBtn.dataset.orig;
     disarmConfirms();
+    if(fillEdit.active) exitFillEdit(false);
     if(colorEdit.active) exitColorEdit(false);
     var idx = -1;
     for (var i = 0; i < schemes.length; i++) if(schemes[i].id === currentId) idx = i;
@@ -942,6 +1065,7 @@
     return [];
   }
   function exportCurrentScheme(){
+    if(fillEdit.active) exitFillEdit(true);
     var s = current();
     if(!s) return;
     saveCurrent();
