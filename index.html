@@ -81,6 +81,8 @@
   th .v, td .v{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;
                padding:3px 8px;}
   td.dg .v, tr.row-hd .v, tr.row-src .v{color:#fff;}
+  .v[data-ph]:empty::before{content:attr(data-ph);opacity:.4;pointer-events:none;}
+  .v[data-ph]:focus::before{content:none;}
   td.dg .v[contenteditable]:hover{background:rgba(59,130,246,.12) !important;box-shadow:0 0 0 1px #93c5fd inset;}
   td.dg .v[contenteditable]:focus{background:rgba(59,130,246,.22) !important;box-shadow:0 0 0 2px #3b82f6;}
   tr.row-hd .v[contenteditable]:hover{background:rgba(255,255,255,.18);box-shadow:0 0 0 1px rgba(255,255,255,.6) inset;}
@@ -165,11 +167,12 @@
     <div class="mod-title">说明</div>
     <div class="desc-text">
       <ul>
-        <li><b>重置部分</b>＝清空第 <span data-desc="cols"></span> 列第 <span data-desc="partRows"></span> 行；<b>重置全部</b>＝清空第 <span data-desc="cols"></span> 列第 <span data-desc="allRows"></span> 行（含第八行名称恢复为“--”）</li>
+        <li><b>重置部分</b>＝清空第 <span data-desc="cols"></span> 列第 <span data-desc="partRows"></span> 行；<b>重置全部</b>＝清空第 <span data-desc="cols"></span> 列第 <span data-desc="allRows"></span> 行（第八行名称清空，显示灰色占位“--”）</li>
         <li>主表数据格（第 <span data-desc="cols"></span> 列）<b>点击即弹出下拉选择</b>：选项 = 第八行“总计”右侧的非“--”内容，第八行改名后选项与已选内容自动同步；未选择的格子在下拉列表中显示[空]，单元格内显示为空白</li>
         <li><b>第 <span data-desc="countRow"></span> 行</b>自动统计每个名称在第 <span data-desc="dataRows"></span> 行数据中出现的次数（0 不显示）</li>
         <li><b>第 <span data-desc="numRow"></span> 行第 1 格</b>为第 <span data-desc="numRow"></span> 行数字之和</li>
         <li>第一列深灰格文字可直接编辑</li>
+        <li>灰色文字（第一行 <b>名称1～名称8</b>、第八行 <b>--</b>）是占位提示：点击进入编辑即消失，可直接输入；清空并离开编辑后自动恢复，不会写入数据</li>
         <li><b>底色编辑</b>：可选浅蓝、浅灰或自定义颜色，<b>点格子涂色，再点一次取消</b>；选「清空」后点击同样恢复默认底色。确认后随当前方案保存；第 7 行与第 <span data-desc="countRow"></span> 行不参与，重置按钮不会清除已设底色</li>
         <li><b>数据自动保存在本浏览器</b>：刷新/重开/页面更新都不丢，每人各自一份，不写回任何文件</li>
         <li>多方案之间数据相互独立，可随时切换、新增、改名、删除</li>
@@ -198,9 +201,17 @@
   // ===== 默认值（唯一来源） =====
   var DEFAULTS = {};
   DEFAULTS['1,1'] = '位置';
-  for (var col = 2; col <= CFG.COLS; col++) DEFAULTS['1,' + col] = '名称' + (col - 1);
   DEFAULTS[CFG.ROWS.source + ',1'] = '总计';
-  for (var col2 = 2; col2 <= CFG.COLS; col2++) DEFAULTS[CFG.ROWS.source + ',' + col2] = '--';
+
+  // 占位提示（只显示、不写入数据）
+  function placeholderFor(rc){
+    var p = rc.split(',');
+    var r = Number(p[0]), c = Number(p[1]);
+    if(c < 2) return '';
+    if(r === CFG.ROWS.header) return '名称' + (c - 1);
+    if(r === CFG.ROWS.source) return '--';
+    return '';
+  }
 
   var grid = {};
   var colorEdit = { active: false, brush: SWATCH_DEFAULT, working: {} };
@@ -224,6 +235,11 @@
     sp.dataset.rc = rc;
     return sp;
   }
+  function placeholderSpan(cls, rc, ph){
+    var sp = editableSpan(cls, rc, '');
+    sp.dataset.ph = ph;
+    return sp;
+  }
   // 可涂格标记：用 data-paint-rc，避免混入 [data-rc] 的 90 格校验
   function markPaintable(td, r, c){
     if(!isPaintable(r, c)) return;
@@ -241,7 +257,8 @@
     var headRow = mk('tr', 'row-hd');
     for (c = 1; c <= CFG.COLS; c++){
       var th = mk('th', c === 1 ? 'center black' : 'center');
-      th.appendChild(editableSpan('v', '1,' + c, DEFAULTS['1,' + c]));
+      if(c === 1) th.appendChild(editableSpan('v', '1,1', DEFAULTS['1,1']));
+      else th.appendChild(placeholderSpan('v', '1,' + c, '名称' + (c - 1)));
       headRow.appendChild(th);
     }
     thead.appendChild(headRow);
@@ -285,7 +302,7 @@
     rowS.appendChild(s1);
     for (c = 2; c <= CFG.COLS; c++){
       td = mk('td', 'center');
-      td.appendChild(editableSpan('v', s + ',' + c, DEFAULTS[s + ',' + c]));
+      td.appendChild(placeholderSpan('v', s + ',' + c, '--'));
       rowS.appendChild(td);
     }
     tbody.appendChild(rowS);
@@ -409,6 +426,8 @@
     Object.keys(grid).forEach(function(rc){
       if(grid[rc].classList.contains('computed')) return;
       var v = Object.prototype.hasOwnProperty.call(data, rc) ? (data[rc] || '') : (DEFAULTS[rc] || '');
+      var ph = placeholderFor(rc);
+      if(ph && v === ph) v = '';          // 旧存档里的默认文字按占位显示
       setCellValue(rc, v);
     });
   }
@@ -642,8 +661,8 @@
         var rc = r + ',' + c;
         if(!grid[rc]) continue;
         if(r === CFG.ROWS.source){
-          setCellValue(rc, '--');
-          prevSrc[c] = '--';
+          setCellValue(rc, '');
+          prevSrc[c] = '';
         } else {
           setCellValue(rc, '');
         }
@@ -983,6 +1002,12 @@
     rebuildOptions();
     compute();
     saveCurrent();
+  });
+
+  // 清空后残留 <br> 会导致占位不恢复，离开编辑时归一化
+  mainTable.addEventListener('focusout', function(e){
+    var el = e.target;
+    if(el && el.dataset && el.dataset.ph && el.textContent.trim() === '') el.innerHTML = '';
   });
 
   // ===== 初始化 =====
