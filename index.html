@@ -178,7 +178,6 @@
   <div class="color-bar" id="fill-bar">
     <span class="swatch-label">字段：</span>
     <span id="fill-chips" style="display:flex;gap:6px;flex-wrap:wrap"></span>
-    <button class="fill-chip clear-chip" type="button" id="fill-clear-all">一键清空</button>
     <span class="fill-hint" id="fill-hint"></span>
     <button class="btn primary" type="button" id="fill-confirm">确认</button>
     <button class="btn" type="button" id="fill-cancel">取消</button>
@@ -200,7 +199,7 @@
         <li><b>第 <span data-desc="countRow"></span> 行</b>自动统计每个名称在第 <span data-desc="dataRows"></span> 行数据中出现的次数（0 不显示）</li>
         <li><b>第 <span data-desc="numRow"></span> 行第 1 格</b>为第 <span data-desc="numRow"></span> 行数字之和</li>
         <li>第一列深灰格文字可直接编辑</li>
-        <li><b>字段填充</b>：字段来自第八行名称；选字段后点数据格批量填充，同一格再点一次取消；可「清空」单格或「一键清空」全部数据格；确认后随当前方案保存，取消/Esc 还原，只影响第 2～6 行数据格</li>
+        <li><b>字段填充</b>：字段来自第八行名称；选字段后点数据格批量填充，同一格再点一次取消；选「清空」后点格子可清空该格；确认后随当前方案保存，取消/Esc 还原，只影响第 2～6 行数据格</li>
         <li>灰色文字（第一行 <b>名称1～名称8</b>、第八行 <b>--</b>）是占位提示：点击进入编辑即消失，可直接输入；清空并离开编辑后自动恢复，不会写入数据</li>
         <li><b>颜色选择</b>：可选浅蓝、浅灰、浅紫、浅绿、浅黄或自定义颜色，<b>点格子涂色，再点一次取消</b>；选「清空」后点击同样恢复默认底色。确认后随当前方案保存；第 7 行与第 <span data-desc="countRow"></span> 行不参与，「清空/重置」按钮不会清除已设底色</li>
         <li><b>数据自动保存在本浏览器</b>：刷新/重开/页面更新都不丢，每人各自一份，不写回任何文件</li>
@@ -676,12 +675,6 @@
     }
     compute();
   }
-  function clearAllFillCells(){
-    Object.keys(fillEdit.snapshot).forEach(function(rc){
-      setCellValue(rc, '');
-    });
-    compute();
-  }
   function enterFillEdit(){
     disarmConfirms();
     if(colorEdit.active) exitColorEdit(true);
@@ -726,7 +719,6 @@
     else enterFillEdit();
   });
   fillBar.addEventListener('click', function(e){
-    if(e.target.closest && e.target.closest('#fill-clear-all')){ clearAllFillCells(); return; }
     var chip = e.target.closest ? e.target.closest('.fill-chip') : null;
     if(chip){ fillEdit.field = chip.dataset.value; renderFillChips(); return; }
     if(e.target.closest && e.target.closest('#fill-confirm')){ exitFillEdit(true); return; }
