@@ -207,6 +207,7 @@
         <li><b>第 <span data-desc="countRow"></span> 行</b>自动统计每个名称在第 <span data-desc="dataRows"></span> 行数据中出现的次数（0 不显示）</li>
         <li><b>第 <span data-desc="numRow"></span> 行第 1 格</b>为第 <span data-desc="numRow"></span> 行数字之和</li>
         <li>第一列深灰格文字可直接编辑</li>
+        <li>灰色行（第 7 行）已合并为第 2～5、6～9 列两段，可直接编辑</li>
         <li><b>字段填充</b>：字段来自第八行名称；选字段后点数据格批量填充，同一格再点一次取消；选「清空」后点格子可清空该格；确认后随当前方案保存，取消/Esc 还原，只影响第 2～6 行数据格</li>
         <li>灰色文字（第一行 <b>名称1～名称8</b>、第八行 <b>--</b>）是占位提示：点击进入编辑即消失，可直接输入；清空并离开编辑后自动恢复，不会写入数据</li>
         <li><b>颜色选择</b>：可选浅蓝、浅灰、浅紫、浅绿、浅黄或自定义颜色，<b>点格子涂色，再点一次取消</b>；选「清空」后点击同样恢复默认底色。确认后随当前方案保存；第 7 行与第 <span data-desc="countRow"></span> 行不参与，「清空/重置」按钮不会清除已设底色</li>
@@ -237,6 +238,8 @@
   };
   // 可涂底色的行：数据行 + 第9行（排除表头/第7行灰底/总计深色行/第10行自动色）
   var PAINT_ROWS = CFG.ROWS.data.concat([CFG.ROWS.number]);
+  // 第7行自第2列起的分段宽度：2～5、6～9
+  var GRAY_SPANS = [4, 4];
   var SWATCH_DEFAULT = '#D9E8F8';
   function isPaintable(r, c){
     return c >= 2 && c <= CFG.COLS && PAINT_ROWS.indexOf(r) !== -1;
@@ -335,11 +338,14 @@
     var g1 = mk('td', 'dg center');
     g1.appendChild(editableSpan('v', g + ',1', DEFAULTS[g + ',1']));
     rowG.appendChild(g1);
-    for (c = 2; c <= CFG.COLS; c++){
-      td = mk('td', 'center e6');
-      td.appendChild(editableSpan('v', g + ',' + c, DEFAULTS[g + ',' + c]));
-      rowG.appendChild(td);
-    }
+    var spanCol = 2;
+    GRAY_SPANS.forEach(function(width){
+      var gtd = mk('td', 'center e6');
+      gtd.colSpan = width;
+      gtd.appendChild(editableSpan('v', g + ',' + spanCol, ''));
+      rowG.appendChild(gtd);
+      spanCol += width;
+    });
     tbody.appendChild(rowG);
 
     var s = CFG.ROWS.source;
@@ -385,7 +391,7 @@
     document.querySelectorAll('[data-rc]').forEach(function(el){
       grid[el.dataset.rc] = el;
     });
-    var expected = CFG.ROWS.count * CFG.COLS;
+    var expected = CFG.ROWS.count * CFG.COLS - (CFG.COLS - 1 - GRAY_SPANS.length);
     var actual = Object.keys(grid).length;
     if (actual !== expected){
       console.error('[方案] data-rc 数量异常：期望 ' + expected + '，实际 ' + actual);
