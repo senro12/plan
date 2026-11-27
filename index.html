@@ -178,7 +178,7 @@
   <div class="color-bar" id="fill-bar">
     <span class="swatch-label">字段：</span>
     <span id="fill-chips" style="display:flex;gap:6px;flex-wrap:wrap"></span>
-    <button class="btn" type="button" id="fill-clear-all">一键清空</button>
+    <button class="fill-chip clear-chip" type="button" id="fill-clear-all">一键清空</button>
     <span class="fill-hint" id="fill-hint"></span>
     <button class="btn primary" type="button" id="fill-confirm">确认</button>
     <button class="btn" type="button" id="fill-cancel">取消</button>
@@ -726,9 +726,9 @@
     else enterFillEdit();
   });
   fillBar.addEventListener('click', function(e){
+    if(e.target.closest && e.target.closest('#fill-clear-all')){ clearAllFillCells(); return; }
     var chip = e.target.closest ? e.target.closest('.fill-chip') : null;
     if(chip){ fillEdit.field = chip.dataset.value; renderFillChips(); return; }
-    if(e.target.closest && e.target.closest('#fill-clear-all')){ clearAllFillCells(); return; }
     if(e.target.closest && e.target.closest('#fill-confirm')){ exitFillEdit(true); return; }
     if(e.target.closest && e.target.closest('#fill-cancel')){ exitFillEdit(false); return; }
   });
